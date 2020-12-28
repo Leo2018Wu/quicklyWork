@@ -49,4 +49,64 @@ function timeFormat(timestamp = null, fmt = 'yyyy-mm-dd') {
   return fmt;
 }
 
+export default timeFormat;
+
+//方法二：
+/** 
+* 对Date的扩展，将 Date 转化为指定格式的String
+         * 月(M)、日(d)、小时(H)、分(m)、秒(s)、 可以用 1-2 个占位符，
+         * 年(y)可以用 2或4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字)
+         * 星期(W)、上下午(N)、季度(Q)只能用一个占位符
+         * 例子：
+         * new Date("2020-01-01 01:19:08.879").format("yyyy-MM-dd") ==> 2020-01-01
+         * new Date("2020-01-01 01:19:08.879").format("yyyy-MM-dd Q季度 W N") ==> 2020-01-01 1季度 星期三 上午
+         * new Date("2020-01-01 01:19:08.879").format("HH:mm:ss") ==> 01:19:08
+         * new Date("2020-01-01 01:19:08.879").format() ==> 2020-01-01 01:19:08
+         * new Date("2020-01-01 01:19:08.879").format("yy-M-d H:m:s.S")  ==> 20-1-1 1:19:8.879 
+         * */
+Date.prototype.format = function (fmt = "yyyy-MM-dd HH:mm:ss") {
+  let week = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+  let res = {
+    "(yy){1,2}": this.getFullYear(), // 年份
+    "m{1,2}": this.getMonth() + 1, // 月份
+    "d{1,2}": this.getDate(), // 当月日期
+    "(h|H){1,2}": this.getHours(), // 小时（24小时制）
+    "M{1,2}": this.getMinutes(), // 分钟
+    "s{1,2}": this.getSeconds(), // 秒钟
+    "S": this.getMilliseconds(), // 毫秒
+    "W": week[this.getDay()], // 星期几
+    "N": this.getHours() < 12 ? "上午" : "下午",
+    "Q": Math.floor((this.getMonth()) / 3) + 1, // 季度
+  }
+  for (let k in res) {
+    let re = new RegExp("(" + k + ")");
+    if (re.test(fmt)) {
+      let len = RegExp.$1.length;
+      let value = "" + res[k];
+      while (value.length < len) {
+        value = "0" + value;
+      }
+      if (len > 1 && len < value.length)
+        value = value.substring(value.length - 2, value.length);
+      fmt = fmt.replace(RegExp.$1, value);
+    }
+  }
+  return fmt;
+}
+
+
+
+function timeFormat(timestamp = null, fmt = 'yyyy-mm-dd') {
+  // 其他更多是格式化有如下:
+  // yyyy:mm:dd|yyyy:mm|yyyy年mm月dd日|yyyy年mm月dd日 hh时MM分等,可自定义组合
+  timestamp = parseInt(timestamp);
+  // 如果为null,则格式化当前时间
+  if (!timestamp) timestamp = Number(new Date());
+  // 判断用户输入的时间戳是秒还是毫秒,一般前端js获取的时间戳是毫秒(13位),后端传过来的为秒(10位)
+  if (timestamp.toString().length == 10) timestamp *= 1000;
+  let date = new Date(timestamp);
+  return date.format(fmt);
+}
+
 export default timeFormat
+
